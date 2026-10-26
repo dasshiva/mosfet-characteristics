@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Interactive visualization of the drain and transfer characteristics of an NMOS MOSFET in common-source configuration." />
+  <title>MOSFET CS Characteristics — Interactive Lab</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Back to top">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <rect x="4" y="4" width="16" height="16" rx="3"/>
+          <path d="M8 9h8M8 12h8M8 15h5"/>
+        </svg>
+      </span>
+      <span><strong>MOSFET Lab</strong><small>Common-source characteristics</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#workspace">Experiment</a>
+      <a href="#theory">Theory</a>
+      <a href="#procedure">Procedure</a>
+      <a href="#data">Data</a>
+    </nav>
+    <button class="btn btn-primary btn-run" id="runBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+      Run sweep
+    </button>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="pulse"></span> Basic Electronics Devices · Virtual Lab</p>
+        <h1>Drain &amp; Transfer Characteristics of a MOSFET</h1>
+        <p class="hero-sub">An interactive common-source experiment. Sweep the gate and drain biases, watch the channel move through cutoff, triode and saturation, and extract the operating point in real time.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#workspace">Open the bench</a>
+          <a class="btn btn-ghost" href="report/MOSFET_CS_Characteristics_Report.pdf" target="_blank" rel="noopener">Read the report</a>
+        </div>
+      </div>
+      <div class="hero-figure" aria-hidden="true">
+        <svg viewBox="0 0 520 300">
+          <defs>
+            <linearGradient id="heroGlow" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#31e0d3" stop-opacity=".9"/>
+              <stop offset="1" stop-color="#7c5cff" stop-opacity=".15"/>
+            </linearGradient>
+            <linearGradient id="heroFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#31e0d3" stop-opacity=".28"/>
+              <stop offset="1" stop-color="#31e0d3" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <g opacity=".18" stroke="#9fb4d8" stroke-width="1">
+            <path d="M0 60h520M0 120h520M0 180h520M0 240h520"/>
+            <path d="M60 0v300M140 0v300M220 0v300M300 0v300M380 0v300M460 0v300"/>
+          </g>
+          <path d="M40 260 C 130 250, 150 174, 212 92 C 245 48, 280 42, 480 36 L 480 280 L 40 280 Z" fill="url(#heroFill)"/>
+          <path d="M40 260 C 130 250, 150 174, 212 92 C 245 48, 280 42, 480 36" fill="none" stroke="url(#heroGlow)" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M40 271 C 120 263, 144 220, 190 158 C 228 106, 268 92, 480 85" fill="none" stroke="#f7b267" stroke-width="2" stroke-dasharray="6 7" opacity=".75"/>
+          <circle cx="212" cy="92" r="6" fill="#0b1b33" stroke="#31e0d3" stroke-width="3"/>
+          <text x="224" y="84" fill="#dce8ff" font-size="11" font-family="monospace">Q point</text>
+          <text x="44" y="293" fill="#9fb4d8" font-size="10" font-family="monospace">V_DS →</text>
+          <text x="10" y="46" fill="#9fb4d8" font-size="10" font-family="monospace" transform="rotate(-90 10 46)">I_D →</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="workspace" id="workspace" aria-labelledby="workspace-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow eyebrow-dark">Interactive bench</p>
+          <h2 id="workspace-title">Bias the device, then read the curves</h2>
+        </div>
+        <p class="section-note">Shichman–Hodges NMOS model · parameters update live</p>
+      </div>
+
+      <div class="bench">
+        <aside class="panel controls" aria-label="Bias and device controls">
+          <div class="panel-head">
+            <h3>Controls</h3>
+            <button class="icon-btn" id="resetBtn" type="button" title="Reset to nominal values" aria-label="Reset parameters">↺</button>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><label for="vgs">Gate–source voltage <span>V<sub>GS</sub></span></label><output id="vgsOut">4.0 V</output></div>
+            <input id="vgs" type="range" min="2" max="6" step="0.1" value="4" />
+            <div class="range-hint"><span>2 V</span><span>6 V</span></div>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><label for="vdd">Supply voltage <span>V<sub>DD</sub></span></label><output id="vddOut">12 V</output></div>
+            <input id="vdd" type="range" min="8" max="20" step="1" value="12" />
+            <div class="range-hint"><span>8 V</span><span>20 V</span></div>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><label for="rd">Drain resistor <span>R<sub>D</sub></span></label><output id="rdOut">2.2 kΩ</output></div>
+            <input id="rd" type="range" min="0.47" max="4.7" step="0.01" value="2.2" />
+            <div class="range-hint"><span>0.47 kΩ</span><span>4.7 kΩ</span></div>
+          </div>
+
+          <div class="control-divider"><span>Device parameters</span></div>
+
+          <div class="control-group">
+            <div class="control-label"><label for="vth">Threshold voltage <span>V<sub>th</sub></span></label><output id="vthOut">2.0 V</output></div>
+            <input id="vth" type="range" min="1" max="3" step="0.1" value="2" />
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><label for="kn">Transconductance parameter <span>k<sub>n</sub></span></label><output id="knOut">0.50 mA/V²</output></div>
+            <input id="kn" type="range" min="0.2" max="1" step="0.01" value="0.5" />
+          </div>
+
+          <div class="control-group">
+            <div class="control-label"><label for="lambda">Channel-length modulation <span>λ</span></label><output id="lambdaOut">0.020 V⁻¹</output></div>
+            <input id="lambda" type="range" min="0" max="0.1" step="0.005" value="0.02" />
+          </div>
+
+          <div class="model-note">
+            <strong>Model</strong>
+            <p>Square-law NMOS with channel-length modulation. Currents in mA, voltages in V, resistances in kΩ.</p>
+          </div>
+        </aside>
+
+        <div class="panel chart-panel" id="chartPanel">
+          <div class="chart-top">
+            <div class="tabs" role="tablist" aria-label="Characteristic type">
+              <button class="tab is-active" id="tab-output" role="tab" aria-selected="true" aria-controls="chart" data-tab="output" type="button">Drain characteristics</button>
+              <button class="tab" id="tab-transfer" role="tab" aria-selected="false" aria-controls="chart" data-tab="transfer" type="button">Transfer characteristics</button>
+            </div>
+            <span class="live-badge"><span></span> Live model</span>
+          </div>
+          <div class="chart-wrap">
+            <svg id="chart" viewBox="0 0 760 470" role="img" aria-labelledby="chartTitle chartDesc">
+              <title id="chartTitle">Drain characteristics of an NMOS transistor</title>
+              <desc id="chartDesc">Drain current versus drain-source voltage for several gate-source voltages, with a load line and quiescent point.</desc>
+            </svg>
+            <div class="chart-tooltip" id="tooltip" hidden></div>
+          </div>
+          <div class="chart-legend" id="legend"></div>
+          <div class="chart-foot">
+            <span id="chartMode">Output family: I<sub>D</sub> vs V<sub>DS</sub> at fixed V<sub>GS</sub></span>
+            <span class="mono" id="chartStatus">V<sub>DD</sub> = 12 V · R<sub>D</sub> = 2.2 kΩ</span>
+          </div>
+        </div>
+
+        <aside class="panel readout" aria-label="Operating point readout">
+          <div class="panel-head">
+            <h3>Operating point</h3>
+            <span class="region-pill" id="regionPill">Saturation</span>
+          </div>
+          <div class="big-reading">
+            <span class="reading-value" id="idValue">1.19</span>
+            <span class="reading-unit">mA</span>
+            <span class="reading-label">Drain current, I<sub>D</sub></span>
+          </div>
+          <dl class="stat-list">
+            <div><dt>V<sub>DS</sub></dt><dd id="vdsValue">9.39 V</dd></div>
+            <div><dt>V<sub>ov</sub> = V<sub>GS</sub> − V<sub>th</sub></dt><dd id="vovValue">2.00 V</dd></div>
+            <div><dt>Transconductance g<sub>m</sub></dt><dd id="gmValue">1.20 mS</dd></div>
+            <div><dt>Power at Q</dt><dd id="powerValue">11.2 mW</dd></div>
+          </dl>
+          <div class="equation-card">
+            <p class="equation-title">Saturation current</p>
+            <p class="equation">I<sub>D</sub> = ½ k<sub>n</sub> (V<sub>GS</sub> − V<sub>th</sub>)² (1 + λV<sub>DS</sub>)</p>
+            <p class="equation-note">Valid when V<sub>DS</sub> ≥ V<sub>GS</sub> − V<sub>th</sub></p>
+          </div>
+          <div class="condition-list" id="conditionList"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="data-section" id="data">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow eyebrow-dark">Measurement log</p>
+          <h2>Tabulated results</h2>
+        </div>
+        <div class="data-actions">
+          <button class="btn btn-small btn-ghost-dark" id="copyBtn" type="button">Copy table</button>
+          <button class="btn btn-small btn-dark" id="csvBtn" type="button">Export CSV</button>
+        </div>
+      </div>
+      <div class="panel table-panel">
+        <table id="dataTable">
+          <thead>
+            <tr id="tableHead"></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <p class="table-caption" id="tableCaption">Quiescent points for the common-source stage. Q is the intersection of the device curve and the DC load line I<sub>D</sub> = (V<sub>DD</sub> − V<sub>DS</sub>)/R<sub>D</sub>.</p>
+      </div>
+    </section>
+
+    <section class="theory-section" id="theory">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow eyebrow-dark">Theory</p>
+          <h2>Inside the common-source stage</h2>
+        </div>
+      </div>
+      <div class="theory-grid">
+        <div class="panel circuit-panel">
+          <h3>Circuit under test</h3>
+          <svg class="circuit" viewBox="0 0 560 360" role="img" aria-labelledby="circuitTitle">
+            <title id="circuitTitle">NMOS common-source circuit with drain resistor and gate bias</title>
+            <defs>
+              <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5"><circle cx="5" cy="5" r="4" fill="currentColor"/></marker>
+            </defs>
+            <g class="wire" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M390 54v40"/>
+              <path d="M390 94h-26 M390 94h26 M364 94l13-10 13 20 13-20 13 10"/>
+              <path d="M390 114v72"/>
+              <path d="M362 186h56 M362 186v26 M418 186v26"/>
+              <path d="M390 212v74"/>
+              <path d="M362 286h56 M348 296h84 M360 306h60 M372 316h36"/>
+              <path d="M390 140h-56v86 M334 226h-60"/>
+              <path d="M274 226v48 M274 274h-30 M244 274h-30 M214 274v26 M204 284h20 M199 292h30 M194 300h40"/>
+            </g>
+            <g class="schematic-label" fill="currentColor">
+              <text x="404" y="50">+V<tspan baseline-shift="sub" font-size="11">DD</tspan></text>
+              <text x="424" y="105">R<tspan baseline-shift="sub" font-size="11">D</tspan></text>
+              <text x="330" y="170">D</text>
+              <text x="330" y="250">S</text>
+              <text x="300" y="180">G</text>
+              <text x="236" y="220">V<tspan baseline-shift="sub" font-size="11">GS</tspan></text>
+              <text x="420" y="230">V<tspan baseline-shift="sub" font-size="11">DS</tspan></text>
+              <text x="388" y="294">Q<tspan baseline-shift="sub" font-size="11">1</tspan></text>
+            </g>
+            <g class="meter" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="390" cy="160" r="13"/><text x="384" y="165" fill="currentColor" stroke="none" font-size="12">A</text>
+              <circle cx="466" cy="212" r="15"/><text x="460" y="217" fill="currentColor" stroke="none" font-size="12">V</text>
+              <path d="M390 160v-6 M390 173v39 M390 212h61"/>
+            </g>
+            <g class="schematic-note" fill="currentColor">
+              <text x="40" y="40">Common-source NMOS</text>
+              <text x="40" y="60">Source grounded · drain through R_D</text>
+            </g>
+            <circle cx="390" cy="140" r="3.5" fill="currentColor"/>
+            <circle cx="390" cy="212" r="3.5" fill="currentColor"/>
+          </svg>
+          <p class="caption">Figure 1. NMOS common-source test circuit. V<sub>GS</sub> sets the channel; R<sub>D</sub> converts drain current into a drain voltage.</p>
+        </div>
+        <div class="theory-cards">
+          <article class="panel theory-card">
+            <span class="card-index">01</span>
+            <h3>Cutoff</h3>
+            <p>When V<sub>GS</sub> ≤ V<sub>th</sub>, no inversion channel forms. I<sub>D</sub> ≈ 0 and the drain sits at V<sub>DD</sub>.</p>
+          </article>
+          <article class="panel theory-card">
+            <span class="card-index">02</span>
+            <h3>Triode</h3>
+            <p>For V<sub>DS</sub> &lt; V<sub>GS</sub> − V<sub>th</sub>, the channel is continuous and the device behaves like a voltage-controlled resistor.</p>
+          </article>
+          <article class="panel theory-card">
+            <span class="card-index">03</span>
+            <h3>Saturation</h3>
+            <p>Once V<sub>DS</sub> ≥ V<sub>GS</sub> − V<sub>th</sub>, the channel pinches off near the drain. I<sub>D</sub> is set mainly by V<sub>GS</sub>, with a mild λ slope.</p>
+          </article>
+          <article class="panel theory-card accent">
+            <span class="card-index">04</span>
+            <h3>Load line</h3>
+            <p>The external circuit imposes I<sub>D</sub> = (V<sub>DD</sub> − V<sub>DS</sub>)/R<sub>D</sub>. Its intersection with the device curve is the Q point.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="procedure-section" id="procedure">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow eyebrow-dark">Lab procedure</p>
+          <h2>How the measurement is made</h2>
+        </div>
+      </div>
+      <ol class="steps">
+        <li><span>01</span><div><h3>Set the gate bias</h3><p>Hold V<sub>GS</sub> at a fixed value above V<sub>th</sub> and verify the gate current is negligible.</p></div></li>
+        <li><span>02</span><div><h3>Sweep the drain supply</h3><p>Increase V<sub>DS</sub> from 0 V in small steps and record I<sub>D</sub> after each step settles.</p></div></li>
+        <li><span>03</span><div><h3>Repeat for each V<sub>GS</sub></h3><p>Build the output family by repeating the sweep for several gate voltages.</p></div></li>
+        <li><span>04</span><div><h3>Fix V<sub>DS</sub> and sweep V<sub>GS</sub></h3><p>With V<sub>DS</sub> in saturation, vary V<sub>GS</sub> and record I<sub>D</sub> to obtain the transfer characteristic.</p></div></li>
+        <li><span>05</span><div><h3>Extract the parameters</h3><p>Find V<sub>th</sub> from the turn-on point, k<sub>n</sub> from the square-law fit, and g<sub>m</sub> from the slope of the transfer curve.</p></div></li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><strong>MOSFET Lab</strong> · Interactive common-source characterization</p>
+    <p>Model: Shichman–Hodges · Built for the Basic Electronics Devices laboratory.</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
